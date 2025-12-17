@@ -16,26 +16,7 @@ function TasksManager() {
     const [newTask, setNewTask] = useState(emptyTask)
     const [tasks, setTasks] = useState<Task[]>([])
     const [newDescription, setNewDescription] = useState("");
-    const [isSignIn, setIsSignIn] = useState(false)
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
 
-    const handleAuth = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        if (!isSignIn) {
-            const { data: SignUpData, error: SignUpError } = await supabase.auth.signUp({ email, password })
-            console.log(SignUpData)
-            if (SignUpError) {
-                console.error("Error sigining up : ", SignUpError.message)
-            }
-        } else {
-            const { data: SignInData, error: SignInError } = await supabase.auth.signInWithPassword({ email, password })
-            console.log(SignInData)
-            if (SignInError) {
-                console.error("Error sigining in : ", SignInError.message)
-            }
-        }
-    }
 
 
     const fetchTasks = async () => {
@@ -94,100 +75,75 @@ function TasksManager() {
     }
     return <>
 
-        <form onSubmit={(e) => handleAuth(e)}>
-            {isSignIn && <div className=" border max-w-full p-16 h-200 flex flex-col  justify-center items-center gap-8 ">
-                <h1 className="text-5xl font-bold  ">Task manager CRUD </h1>
-                <form
-                    className=" w-80  space-y-5"
-                    onSubmit={handleSubmit}>
+        <div className="  max-w-full p-16 h-200 flex flex-col  justify-center items-center gap-8 ">
+            <h1 className="text-5xl font-bold  ">Task manager CRUD </h1>
+            <form
+                className=" w-80  space-y-5"
+                onSubmit={handleSubmit}>
 
-                    <input type="text"
-                        className="border rounded-md h-9 w-full pl-2 "
-                        placeholder="Task Title"
-                        onChange={(e) =>
-                            setNewTask((prev) => ({ ...prev, title: e.target.value }))
+                <input type="text"
+                    className="border rounded-md h-9 w-full pl-2 "
+                    placeholder="Task Title"
+                    onChange={(e) =>
+                        setNewTask((prev) => ({ ...prev, title: e.target.value }))
 
-                        } />
+                    } />
 
-                    <textarea
-                        className="border rounded-sm h-15 w-full pl-2 p-0.5 "
-                        placeholder="Task description"
-                        onChange={(e) =>
-                            setNewTask((prev) => ({ ...prev, description: e.target.value }))
-                        } />
+                <textarea
+                    className="border rounded-sm h-15 w-full pl-2 p-0.5 "
+                    placeholder="Task description"
+                    onChange={(e) =>
+                        setNewTask((prev) => ({ ...prev, description: e.target.value }))
+                    } />
 
-                    <button
-                        className="btn btn-primary ml-25">
-                        Add task
-                    </button>
-                </form>
+                <button
+                    className="btn btn-primary ml-25">
+                    Add task
+                </button>
+            </form>
 
-                <ul className="max-w-5xl mx-auto  flex flex-row gap-5 ">
-                    {tasks.map((task, key) => {
+            <ul className="max-w-5xl mx-auto  flex flex-row gap-5 ">
+                {tasks.map((task, key) => {
 
-                        return <li key={key} className="card bg-black shadow-xl border border-base-200 mb-6 w-full ">
-                            <div className="card-body p-15">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div>
-                                        <h3 className="card-title text-2xl font-bold text-primary">{task.title}</h3>
-                                        <p className="text-base-content/70 mt-1">{task.description}</p>
-                                    </div>
-
+                    return <li key={key} className="card bg-black shadow-xl border border-base-200 mb-6 w-full ">
+                        <div className="card-body p-15">
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 className="card-title text-2xl font-bold text-primary">{task.title}</h3>
+                                    <p className="text-base-content/70 mt-1">{task.description}</p>
                                 </div>
 
-                                <div className="divider"></div>
+                            </div>
 
-                                <div className="flex flex-col gap-4">
-                                    <textarea
-                                        className="textarea textarea-bordered textarea-primary w-full leading-relaxed"
-                                        placeholder="Updated description ..."
-                                        onChange={(e) => setNewDescription(e.target.value)}
-                                    />
+                            <div className="divider"></div>
 
-                                    {/* Actions */}
-                                    <div className="card-actions justify-end gap-2 mt-2">
-                                        <button className="btn btn-primary btn-outline flex-1 sm:flex-none"
-                                            onClick={() => updateTask(task.id)}>
-                                            Edit
-                                        </button>
-                                        <button className="btn btn-error flex-1 sm:flex-none"
-                                            onClick={() => deleteTask(task.id)}>
-                                            Delete
-                                        </button>
-                                    </div>
+                            <div className="flex flex-col gap-4">
+                                <textarea
+                                    className="textarea textarea-bordered textarea-primary w-full leading-relaxed"
+                                    placeholder="Updated description ..."
+                                    onChange={(e) => setNewDescription(e.target.value)}
+                                />
+
+                                {/* Actions */}
+                                <div className="card-actions justify-end gap-2 mt-2">
+                                    <button className="btn btn-primary btn-outline flex-1 sm:flex-none"
+                                        onClick={() => updateTask(task.id)}>
+                                        Edit
+                                    </button>
+                                    <button className="btn btn-error flex-1 sm:flex-none"
+                                        onClick={() => deleteTask(task.id)}>
+                                        Delete
+                                    </button>
                                 </div>
                             </div>
-                        </li>
-                    })}
+                        </div>
+                    </li>
+                })}
 
-                </ul>
-            </div>}
-            {!isSignIn && <div className=" max-w-full pl-15 pb-15 pr-15  w flex flex-col  mt-20 justify-center items-center gap-4 ">
-                <h1
-                    className="text-5xl font-bold ">
-                    {isSignIn ? "Sign In" : "Sign Up"}
-                </h1>
-                <input type="text"
-                    className="border rounded-md h-9 w-70 pl-2 mt-5 "
-                    placeholder="Email" />
+            </ul>
+        </div>
 
-                <input type="text"
-                    className="border rounded-md h-9 w-70 pl-2 "
-                    placeholder="Password" />
-                <div className=" flex justify-center items-center gap-5 mt-3">
-                    <button
-                        type="submit"
-                        className="btn btn-md  btn-accent"
-                        onClick={() => setIsSignIn(prev => !prev)}>
-                        {isSignIn ? "Sign In" : "Sign Up"}
-                    </button>
 
-                </div>
-
-            </div>
-            }
-
-        </form>
     </>
 }
 export default TasksManager
