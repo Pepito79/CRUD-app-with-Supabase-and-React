@@ -40,8 +40,6 @@ function Login({ setUser }: any) {
         }
 
 
-        // Store the token in the sessionStorage
-        localStorage.setItem("supabaseToken", data.session?.access_token || "");
         setUser(data.user)
 
         console.log("Utilisateur logged in avec succès :", data.user);

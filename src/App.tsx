@@ -14,14 +14,62 @@ function App() {
 
 
   useEffect(() => {
-    const token = sessionStorage.getItem("supabaseToken");
+    supabase.auth.getSession().then(({ data }) => {
+      setUser(data.session?.user || null)
+    })
 
-    if (token) {
-      supabase.auth.getUser(token)
-        .then(({ data }) => setUser(data.user));
-      console.log(user)
+    const { data: listner } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null)
+      }
+    )
+
+    return () => {
+      listner.subscription.unsubscribe()
     }
-  }, []);
+  }, function App() {
+
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true)
+    useEffect(() => {
+      supabase.auth.getSession().then(({ data }) => {
+        setUser(data.session?.user || null)
+      })
+
+      const { data: listner } = supabase.auth.onAuthStateChange(
+        (_event, session) => {
+          setUser(session?.user ?? null)
+        }
+      )
+
+      return () => {
+        listner.subscription.unsubscribe()
+      }
+    }, [])
+
+    return <>
+      <ToastContainer
+        position="bottom-left"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        pauseOnHover
+        draggable
+
+      />
+
+      <Routes>
+        <Route path={"/"} element={<SignUp />} />
+        <Route path={"/login"} element={<Login setUser={setUser} />} />
+        <Route path={"/todoBoard"}
+          element={user ? <TasksManager userData={user} /> : <Navigate to="/login" />} />
+      </Routes>
+
+    </>
+  }
+
+  )
 
   return <>
     <ToastContainer

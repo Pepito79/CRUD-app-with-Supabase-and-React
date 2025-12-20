@@ -29,7 +29,7 @@ function TasksManager({ userData }: any) {
             .select("*")
             .eq('user_id', userData.id)
         if (error) {
-            console.error("An errur occured while trying to select the tasks to the db", error.message)
+            console.error("An error occured while trying to select the tasks to the db", error.message)
         } else {
             setTasks(data)
         }
@@ -50,6 +50,17 @@ function TasksManager({ userData }: any) {
         fetchTasks();
     }, [userData]);
 
+    useEffect(() => {
+        const channel = supabase.channel("tasks-channel");
+        channel.on("postgres_changes", { event: "INSERT", schema: "public", table: "tasks" },
+            (payload) => {
+                const newTask = payload.new as Task
+                setTasks((prev) => [...prev, newTask])
+            }
+        ).subscribe((status) => {
+            console.log("Subscription  : " + status)
+        })
+    })
     console.log(tasks)
 
     const handleSubmit = async (e: any) => {
@@ -90,6 +101,8 @@ function TasksManager({ userData }: any) {
         navigate(-1);
         navigate("/login")
     }
+
+
     return <>
 
         <div className="  max-w-full p-16 h-200 flex flex-col  justify-center items-center gap-8 ">
