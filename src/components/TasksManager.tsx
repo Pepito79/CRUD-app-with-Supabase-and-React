@@ -1,17 +1,21 @@
-import { useEffect, useState, type FormEvent } from "react"
+import { useEffect, useState } from "react"
 import { supabase } from "../supabase-client"
+import { toast } from "react-toastify";
+import { Navigate, useNavigate } from "react-router-dom";
 
 
 
-function TasksManager() {
+function TasksManager({ userData }: any) {
 
     interface Task {
         id: number;
         title: string;
         description: string;
         created_at: string;
+        user_id: string;
     }
 
+    const navigate = useNavigate();
     const emptyTask = { title: "", description: "" }
     const [newTask, setNewTask] = useState(emptyTask)
     const [tasks, setTasks] = useState<Task[]>([])
@@ -23,6 +27,7 @@ function TasksManager() {
         const { error, data } = await supabase
             .from("tasks")
             .select("*")
+            .eq('user_id', userData.id)
         if (error) {
             console.error("An errur occured while trying to select the tasks to the db", error.message)
         } else {
@@ -32,7 +37,7 @@ function TasksManager() {
 
     const deleteTask = async (id: number) => {
 
-        const { error } = await supabase.from("tasks").delete().eq("id", id);
+        const { error } = await supabase.from("tasks").delete().eq("id", id).eq("user_id", userData.id);
         if (error) {
             console.error("Error deleting task : ", error.message)
         } else {
@@ -41,14 +46,15 @@ function TasksManager() {
     }
 
     useEffect(() => {
-        fetchTasks()
-    }, [])
+        if (!userData) return;
+        fetchTasks();
+    }, [userData]);
 
     console.log(tasks)
 
     const handleSubmit = async (e: any) => {
         e.preventDefault()
-        const { error, data } = await supabase.from("tasks").insert(newTask).select().single()
+        const { error, data } = await supabase.from("tasks").insert({ ...newTask, user_id: userData.id }).select().single()
         if (error) {
             console.error("An orrur occured while trying to insert the task to the db", error.message)
             return
@@ -62,7 +68,7 @@ function TasksManager() {
     const updateTask = async (id: number) => {
         const { error } = await supabase
             .from('tasks')
-            .update({ description: newDescription }).eq("id", id)
+            .update({ description: newDescription }).eq("id", id).eq("user_id", userData.id)
         if (error) {
             console.error("Erro trying to update the description ", error)
         } else {
@@ -73,10 +79,21 @@ function TasksManager() {
             setNewDescription("");
         }
     }
+
+
+    const handleLogOut = async () => {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+            toast.error("Error " + error)
+        }
+        toast.success("Log out successfully !")
+        navigate(-1);
+        navigate("/login")
+    }
     return <>
 
         <div className="  max-w-full p-16 h-200 flex flex-col  justify-center items-center gap-8 ">
-            <h1 className="text-5xl font-bold  ">Task manager CRUD </h1>
+            <h1 className="text-5xl font-bold  ">Task manager of {userData.user_metadata?.name} </h1>
             <form
                 className=" w-80  space-y-5"
                 onSubmit={handleSubmit}>
@@ -96,10 +113,17 @@ function TasksManager() {
                         setNewTask((prev) => ({ ...prev, description: e.target.value }))
                     } />
 
-                <button
-                    className="btn btn-primary ml-25">
-                    Add task
-                </button>
+                <div className=" flex flex-row justify-center gap-7">
+                    <button className="btn btn-primary" type="submit">
+                        Add task
+                    </button>
+                    <button className="btn btn-error" type="button"
+                        onClick={handleLogOut}>
+                        Logout
+                    </button>
+                </div>
+
+
             </form>
 
             <ul className="max-w-5xl mx-auto  flex flex-row gap-5 ">
